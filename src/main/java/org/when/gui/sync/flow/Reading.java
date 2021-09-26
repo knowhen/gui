@@ -1,4 +1,7 @@
-package org.when.gui.flow;
+package org.when.gui.sync.flow;
+
+import javafx.beans.property.LongProperty;
+import javafx.beans.property.SimpleLongProperty;
 
 import java.util.Objects;
 
@@ -7,13 +10,32 @@ import java.util.Objects;
  * @create: 2021-09-22  09:53
  **/
 public class Reading {
+    private final LongProperty actual;
+    private final LongProperty target;
+
+    public Reading() {
+        this(new SimpleLongProperty(0), new SimpleLongProperty(42));
+    }
+
+    public Reading(LongProperty actual, LongProperty target) {
+        this.actual = actual;
+        this.target = target;
+    }
+
+    public LongProperty actualProperty() {
+        return actual;
+    }
+
+    public LongProperty targetProperty() {
+        return target;
+    }
 
     public Long getActual() {
-        return 0L;
+        return actual.get();
     }
 
     public Long getTarget() {
-        return 0L;
+        return target.get();
     }
 
     public Long getVariance() {
