@@ -1,71 +1,84 @@
 package org.when.gui.sync.flow;
 
-
-import javafx.application.Application;
-import javafx.beans.property.StringProperty;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
-import javafx.stage.Stage;
-import javafx.util.StringConverter;
-import javafx.util.converter.NumberStringConverter;
+import org.when.gui.BaseApp;
+
+import java.util.Objects;
 
 /**
  * @author: when
- * @create: 2021-09-25  11:33
+ * @create: 2021-09-27  22:47
  **/
-public class AssessmentWindow extends Application {
-
-    private final Reading reading;
+public class AssessmentWindow extends BaseApp {
     private final TextField actualField;
     private final Text targetField;
     private final Text varianceField;
 
     public AssessmentWindow() {
-        this.reading = new Reading();
-        this.actualField = new TextField();
-        this.targetField = new Text();
-        this.varianceField = new Text();
-
-        StringProperty actualProperty = actualField.textProperty();
-        StringConverter<Number> numberStringConverter = new NumberStringConverter();
-        actualProperty.bindBidirectional(reading.actualProperty(), numberStringConverter);
-        actualProperty.addListener((observable, oldValue, newValue) -> updateVarianceField());
-        targetField.textProperty().bindBidirectional(reading.targetProperty(), numberStringConverter);
+        this.actualField = new TextField("#actual");
+        this.targetField = new Text("42");
+        this.varianceField = new Text("#variance");
+        actualField.textProperty().addListener((observable, oldValue, newValue) -> updateVarianceField());
     }
 
     private void updateVarianceField() {
+        varianceField.setText(String.valueOf(getVariance()));
         varianceField.setFill(varianceColor());
-        varianceField.setText(String.valueOf(reading.getVariance()));
     }
 
-    private Color varianceColor() {
-        switch (reading.getVarianceCategory()) {
-            case LOW:
-                return Color.RED;
-            case HIGH:
-                return Color.GREEN;
-            case NULL:
-            case NORMAL:
-                return Color.BLACK;
-            default:
-                throw new IllegalArgumentException("Unknown variance category");
+    public Long getActual() {
+        String text = actualField.getText();
+        return convertFrom(text);
+    }
+
+    public Long getTarget() {
+        String text = targetField.getText();
+        return convertFrom(text);
+    }
+
+    private Long convertFrom(String text) {
+        if (Objects.isNull(text)) {
+            return null;
+        }
+        text = text.trim();
+        if (text.length() < 1) {
+            return null;
+        }
+        return Long.parseLong(text);
+    }
+
+    public Long getVariance() {
+        if (null == getActual()) {
+            return null;
+        }
+        return getActual() - getTarget();
+    }
+
+    public long getVarianceRatio() {
+        return Math.round(100.0 * getVariance() / getTarget());
+    }
+
+    public Color varianceColor() {
+        if (null == getVariance()) {
+            return Color.BLACK;
+        }
+        if (getVarianceRatio() < -10) {
+            return Color.RED;
+        } else if (getVarianceRatio() > 5) {
+            return Color.GREEN;
+        } else {
+            return Color.BLACK;
         }
     }
 
     @Override
-    public void start(Stage stage) throws Exception {
-        stage.setScene(new Scene(createContent()));
-        stage.show();
-    }
-
-    private Parent createContent() {
+    protected Parent createContent() {
         VBox vBox = new VBox();
         vBox.getChildren().addAll(actualField, targetField, varianceField);
         return vBox;
     }
-
 }
